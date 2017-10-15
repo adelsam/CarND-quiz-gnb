@@ -12,6 +12,7 @@ class GNB {
 public:
 
     vector<string> possible_labels = {"left","keep","right"};
+    int num_vars = 4;
     vector<vector<double>> mean;
     vector<vector<double>> stdd;
     /**

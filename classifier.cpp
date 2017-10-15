@@ -24,6 +24,15 @@ static double calc_stdd(double mean, vector<double> values) {
   return sqrt(total / values.size());
 }
 
+static double gaussian_prob(double observation, double mu, double sig) {
+  double num = 0;
+  double denum = 0;
+  double norm = 0;
+  num = pow(observation - mu, 2);
+  denum = 2 * pow(sig, 2);
+  norm = 1 / sqrt(2 * M_PI * pow(sig, 2));
+  return norm * exp(-num / denum);
+}
 
 GNB::GNB() {
 
@@ -54,7 +63,6 @@ void GNB::train(vector<vector<double>> data, vector<string> labels) {
     labels - array of N labels
       - Each label is one of "left", "keep", or "right".
   */
-  int num_vars = 4;
   // [label][j][...]
   vector<vector<vector<double>>> totals(possible_labels.size(),
                                         vector<vector<double>>(num_vars, vector<double>()));
@@ -75,8 +83,8 @@ void GNB::train(vector<vector<double>> data, vector<string> labels) {
       vector<double> values = totals[i][j];
       double m = calc_mean(values);
       double s = calc_stdd(m, values);
-      cout << "i = " << i << " j = " << j << " mean: " << m
-           << " stdd: " << s << " n = " << values.size() << endl;
+//      cout << "i = " << i << " j = " << j << " mean: " << m
+//           << " stdd: " << s << " n = " << values.size() << endl;
       mean[i][j] = m;
       stdd[i][j] = s;
     }
@@ -101,7 +109,29 @@ string GNB::predict(vector<double> sample) {
     """
     # TODO - complete this
   */
+  vector<double> probs(possible_labels.size());
+  for (int i = 0; i < possible_labels.size(); i++) {
+    double product = 1;
+    for (int j = 0; j < num_vars; j++) {
+      double likelihood = gaussian_prob(sample[j], mean[i][j], stdd[i][j]);
+      product *= likelihood;
+    }
+    probs[i] = product;
+  }
 
-  return this->possible_labels[1];
+  // should normalize to get Probabilities, not necessary for prediction
+  long i = distance(begin(probs), max_element(begin(probs), end(probs)));
+//  cout << "sample = ";
+//  for (double s : sample) {
+//    cout << s << ", ";
+//  }
+//  cout << "; prediction = ";
+//  for (double s : probs) {
+//    cout << s << ", ";
+//  }
+//  cout << " max = " << i;
+//  cout << " label = " << this->possible_labels[i];
+//  cout << endl;
+  return this->possible_labels[i];
 
 }
